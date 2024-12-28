@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPI Calculator | By Tanishq</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: "Century Gothic", sans-serif;
+            background: linear-gradient(to bottom right, #F8AD9D, #87BFFF);
+        }
+
+        h2 {
+            margin-bottom: 0;
+            font-size: 2rem;
+            color: #2E4F79;
+        }
+
+        p {
+            margin-top: .25rem;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-top: .75rem;
+            width: 80%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+
+        th, td {
+            padding: .5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #3F8EFC;
+            color: white;
+        }
+
+        input {
+            width: 90%;
+            padding: .5rem;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3F8EFC;
+            box-shadow: 0 0 5px #3F8EFC;
+        }
+
+        .controls {
+            margin-top: .25rem;
+        }
+
+        button {
+            padding: .5rem .75rem;
+            margin: .5rem;
+            background-color: #3F8EFC;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2E6FDA;
+        }
+
+        .current-cpi {
+            margin-top: .5rem;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2E4F79;
+        }
+    </style>
+    <script>
+        const calculateCPI = () => {
+            const rows = document.querySelectorAll("#subjects-container tr:not(:first-child)");
+            let totalGrade = 0, totalCredits = 0;
+
+            rows.forEach(row => {
+                const grade = parseFloat(row.querySelector(".grade").value) || 0;
+                const credits = parseFloat(row.querySelector(".credits").value) || 0;
+
+                totalGrade += grade * credits;
+                totalCredits += credits;
+            });
+
+            document.getElementById("current-cpi").textContent = totalCredits > 0 ? (totalGrade / totalCredits).toFixed(2) : 0;
+        };
+
+        const addSubjectRow = () => {
+            const table = document.getElementById("subjects-container");
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><input type="text" placeholder="Subject Name"></td>
+                <td><input type="number" class="grade" oninput="calculateCPI()"></td>
+                <td><input type="number" class="credits" step="0.5" oninput="calculateCPI()"></td>
+            `;
+            table.appendChild(row);
+        };
+
+        const removeSubjectRow = () => {
+            const table = document.getElementById("subjects-container");
+            table.deleteRow(-1);
+        };
+
+        window.onload = () => {
+            addSubjectRow();
+            document.querySelector("#subjects-container input").focus();
+            addSubjectRow();
+            addSubjectRow();
+            addSubjectRow();
+            addSubjectRow();
+            addSubjectRow();
+            calculateCPI();
+        };
+    </script>
+</head>
+<body>
+<h2>CPI Calculator</h2>
+<p>Designed for my CPI Calculation needs, might help you too</p>
+<table id="subjects-container">
+    <tr>
+        <th>Subject Name</th>
+        <th>Grade</th>
+        <th>Credits</th>
+    </tr>
+</table>
+<div class="controls">
+    <button onclick="addSubjectRow()">Add Subject</button>
+    <button onclick="removeSubjectRow()">Remove Subject</button>
+</div>
+<div class="current-cpi">Current CPI: <span id="current-cpi">0.00</span></div>
+</body>
+</html>
