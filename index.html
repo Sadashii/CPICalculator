@@ -3,150 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPI Calculator | By Tanishq</title>
+    <title>Smart CPI Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #2E2E2E;
+            --danger: #ff6b6b;
+            --success: #00b894;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
         body {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            font-family: "Century Gothic", sans-serif;
-            background: linear-gradient(to bottom right, #F8AD9D, #87BFFF);
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            color: var(--secondary);
+            padding: 20px;
         }
 
-        h2 {
-            margin-bottom: 0;
-            font-size: 2rem;
-            color: #2E4F79;
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            position: relative;
         }
 
-        p {
-            margin-top: .25rem;
-            font-size: 1rem;
-            color: #555;
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 50px;
+            padding: 10px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
         }
 
-        table {
-            border-collapse: collapse;
-            margin-top: .75rem;
-            width: 80%;
-            max-width: 600px;
-            background-color: #fff;
-            border-radius: 8px;
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
         }
 
-        th, td {
-            padding: .5rem;
-            border-bottom: 1px solid #ddd;
+        h2 { margin: 0; color: var(--primary); font-weight: 600; font-size: 2rem; }
+        .subtitle { margin-top: 5px; font-size: 0.9rem; color: #666; margin-bottom: 1.5rem; }
+
+        /* Previous Semester Toggle Section */
+        .prev-sem-toggle {
+            cursor: pointer;
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            text-decoration: underline;
         }
+
+        .prev-data-container {
+            display: none;
+            background: rgba(108, 99, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s;
+        }
+
+        .prev-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Table & Inputs */
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
 
         th {
-            background-color: #3F8EFC;
+            background-color: var(--primary);
             color: white;
+            padding: 12px;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        input {
+        td { padding: 10px; border-bottom: 1px solid #eee; background: white; }
+
+        input, select {
             width: 90%;
-            padding: .5rem;
-            text-align: center;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             outline: none;
+            text-align: center;
+            font-family: inherit;
+            background: #fdfdfd;
+            transition: border 0.3s;
         }
 
-        input:focus {
-            border-color: #3F8EFC;
-            box-shadow: 0 0 5px #3F8EFC;
+        input:focus, select:focus {
+            border-color: var(--primary);
         }
 
-        .controls {
-            margin-top: .25rem;
-        }
+        /* Buttons */
+        .controls { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
 
-        button {
-            padding: .5rem .75rem;
-            margin: .5rem;
-            background-color: #3F8EFC;
-            color: #fff;
+        .btn {
+            padding: 10px 20px;
             border: none;
-            border-radius: 5px;
-            font-size: 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        button:hover {
-            background-color: #2E6FDA;
+        .btn-add { background-color: var(--primary); color: white; }
+        .btn-add:hover { background-color: #5a52d5; transform: translateY(-2px); }
+
+        .btn-clear { background-color: #ffeaa7; color: #d63031; }
+        .btn-clear:hover { background-color: #fab1a0; }
+
+        .btn-delete-row {
+            background: transparent; color: #b2bec3; font-size: 1.1rem; cursor: pointer; border: none;
+        }
+        .btn-delete-row:hover { color: var(--danger); }
+
+        /* Score Card */
+        .score-card {
+            background: linear-gradient(135deg, #6C63FF 0%, #4834d4 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            box-shadow: 0 10px 20px rgba(72, 52, 212, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        .current-cpi {
-            margin-top: .5rem;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #2E4F79;
-        }
+        .cpi-value { font-size: 3rem; font-weight: 700; line-height: 1; margin-top: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <script>
-        const calculateCPI = () => {
-            const rows = document.querySelectorAll("#subjects-container tr:not(:first-child)");
-            let totalGrade = 0, totalCredits = 0;
-
-            rows.forEach(row => {
-                const grade = parseFloat(row.querySelector(".grade").value) || 0;
-                const credits = parseFloat(row.querySelector(".credits").value) || 0;
-
-                totalGrade += grade * credits;
-                totalCredits += credits;
-            });
-
-            document.getElementById("current-cpi").textContent = totalCredits > 0 ? (totalGrade / totalCredits).toFixed(2) : 0;
-        };
-
-        const addSubjectRow = () => {
-            const table = document.getElementById("subjects-container");
-            const row = document.createElement("tr");
-
-            row.innerHTML = `
-                <td><input type="text" placeholder="Subject Name"></td>
-                <td><input type="number" class="grade" oninput="calculateCPI()"></td>
-                <td><input type="number" class="credits" step="0.5" oninput="calculateCPI()"></td>
-            `;
-            table.appendChild(row);
-        };
-
-        const removeSubjectRow = () => {
-            const table = document.getElementById("subjects-container");
-            table.deleteRow(-1);
-        };
-
-        window.onload = () => {
-            addSubjectRow();
-            document.querySelector("#subjects-container input").focus();
-            addSubjectRow();
-            addSubjectRow();
-            addSubjectRow();
-            addSubjectRow();
-            addSubjectRow();
-            calculateCPI();
-        };
-    </script>
 </head>
 <body>
-<h2>CPI Calculator</h2>
-<p>Designed for my CPI Calculation needs, might help you too</p>
-<table id="subjects-container">
-    <tr>
-        <th>Subject Name</th>
-        <th>Grade</th>
-        <th>Credits</th>
-    </tr>
-</table>
-<div class="controls">
-    <button onclick="addSubjectRow()">Add Subject</button>
-    <button onclick="removeSubjectRow()">Remove Subject</button>
+
+<div class="container">
+    <h2>Smart CPI Calculator</h2>
+    <p class="subtitle">Auto-saving your progress</p>
+
+    <div onclick="togglePrevData()" class="prev-sem-toggle">
+        <i class="fas fa-history"></i> Add Previous Semesters?
+    </div>
+
+    <div id="prev-data" class="prev-data-container">
+        <div class="prev-inputs">
+            <input type="number" id="prev-cpi" placeholder="Previous CPI" step="0.01" oninput="calculate()">
+            <input type="number" id="prev-credits" placeholder="Total Past Credits" step="0.5" oninput="calculate()">
+        </div>
+        <small style="color: #666; display:block; margin-top:5px;">Leave blank if calculating current semester only.</small>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="subjects-table">
+            <thead>
+            <tr>
+                <th style="width: 40%;">Subject</th>
+                <th style="width: 25%;">Grade</th>
+                <th style="width: 20%;">Credits</th>
+                <th style="width: 15%;"></th>
+            </tr>
+            </thead>
+            <tbody id="subjects-body">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-add" onclick="addSubjectRow()">
+            <i class="fas fa-plus"></i> Add Subject
+        </button>
+        <button class="btn btn-clear" onclick="resetAll()">
+            <i class="fas fa-trash-restore"></i> Reset
+        </button>
+    </div>
+
+    <div class="score-card">
+        <span id="score-label">Current Performance Index</span>
+        <div class="cpi-value" id="final-cpi">0.00</div>
+    </div>
 </div>
-<div class="current-cpi">Current CPI: <span id="current-cpi">0.00</span></div>
+
+<div id="toast">Data Auto-Saved</div>
+
+<script>
+    // Standard Grade Mapping
+    const gradeMap = {
+        "10": "AA (10)",
+        "9": "AB (9)",
+        "8": "BB (8)",
+        "7": "BC (7)",
+        "6": "CC (6)",
+        "5": "CD (5)",
+        "4": "DD (4)",
+        "0": "F (0)"
+    };
+
+    // Toggle Previous Semester Section
+    const togglePrevData = () => {
+        const div = document.getElementById("prev-data");
+        div.style.display = div.style.display === "block" ? "none" : "block";
+        saveData(); // Save the state preference implies interaction
+    };
+
+    // Calculate Logic
+    const calculate = () => {
+        // 1. Current Semester Calculation
+        const rows = document.querySelectorAll("#subjects-body tr");
+        let currentPoints = 0, currentCredits = 0;
+
+        rows.forEach(row => {
+            const gradeVal = parseFloat(row.querySelector(".grade-select").value);
+            const creditVal = parseFloat(row.querySelector(".credits").value);
+
+            if (!isNaN(gradeVal) && !isNaN(creditVal)) {
+                currentPoints += gradeVal * creditVal;
+                currentCredits += creditVal;
+            }
+        });
+
+        // 2. Previous Semester Calculation
+        const prevCPI = parseFloat(document.getElementById("prev-cpi").value) || 0;
+        const prevCredits = parseFloat(document.getElementById("prev-credits").value) || 0;
+
+        let finalCPI = 0;
+        let totalCredits = currentCredits + prevCredits;
+
+        if (totalCredits > 0) {
+            // Formula: ((PrevCPI * PrevCredits) + CurrentPoints) / TotalCredits
+            const prevPoints = prevCPI * prevCredits;
+            finalCPI = (prevPoints + currentPoints) / totalCredits;
+        }
+
+        // 3. Update UI
+        document.getElementById("final-cpi").textContent = finalCPI.toFixed(2);
+
+        // Update Label
+        const label = document.getElementById("score-label");
+        label.textContent = prevCredits > 0 ? "Cumulative Performance Index (CPI)" : "Semester Performance Index (SPI)";
+
+        saveData();
+    };
+
+    // Generate Row HTML
+    const createRow = (subject = "", grade = "", credits = "") => {
+        const tr = document.createElement("tr");
+
+        // Generate Options for Select
+        let options = `<option value="" disabled ${grade === "" ? "selected" : ""}>Select</option>`;
+        for (const [val, label] of Object.entries(gradeMap)) {
+            options += `<option value="${val}" ${grade == val ? "selected" : ""}>${label}</option>`;
+        }
+
+        tr.innerHTML = `
+            <td><input type="text" class="subj-name" placeholder="Subject" value="${subject}" oninput="saveData()"></td>
+            <td>
+                <select class="grade-select" onchange="calculate()">
+                    ${options}
+                </select>
+            </td>
+            <td><input type="number" class="credits" placeholder="e.g. 4" value="${credits}" step="0.5" oninput="calculate()"></td>
+            <td>
+                <button class="btn-delete-row" onclick="deleteRow(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        `;
+        return tr;
+    };
+
+    const addSubjectRow = (subj, gr, cr) => {
+        const tbody = document.getElementById("subjects-body");
+        const row = createRow(subj, gr, cr);
+        row.style.animation = "fadeIn 0.3s ease-out";
+        tbody.appendChild(row);
+        if(!subj) row.querySelector('.subj-name').focus();
+    };
+
+    const deleteRow = (btn) => {
+        btn.closest('tr').remove();
+        calculate();
+        if(document.querySelectorAll("#subjects-body tr").length === 0) addSubjectRow();
+    };
+
+    // --- LOCAL STORAGE FUNCTIONS --- //
+
+    const showToast = () => {
+        const toast = document.getElementById("toast");
+        toast.className = "show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
+    }
+
+    const saveData = () => {
+        const data = {
+            prevCPI: document.getElementById("prev-cpi").value,
+            prevCredits: document.getElementById("prev-credits").value,
+            showPrev: document.getElementById("prev-data").style.display === "block",
+            rows: []
+        };
+
+        document.querySelectorAll("#subjects-body tr").forEach(row => {
+            data.rows.push({
+                subject: row.querySelector(".subj-name").value,
+                grade: row.querySelector(".grade-select").value,
+                credits: row.querySelector(".credits").value
+            });
+        });
+
+        localStorage.setItem("cpiData", JSON.stringify(data));
+        // Optional: Uncomment below to show toast on every keypress (might be annoying)
+        // showToast();
+    };
+
+    const loadData = () => {
+        const saved = localStorage.getItem("cpiData");
+        const tbody = document.getElementById("subjects-body");
+        tbody.innerHTML = ""; // clear init
+
+        if (saved) {
+            const data = JSON.parse(saved);
+
+            // Restore Previous Data Section
+            document.getElementById("prev-cpi").value = data.prevCPI || "";
+            document.getElementById("prev-credits").value = data.prevCredits || "";
+            if (data.showPrev) document.getElementById("prev-data").style.display = "block";
+
+            // Restore Rows
+            if (data.rows && data.rows.length > 0) {
+                data.rows.forEach(r => {
+                    tbody.appendChild(createRow(r.subject, r.grade, r.credits));
+                });
+            } else {
+                for(let i=0; i<6; i++) tbody.appendChild(createRow());
+            }
+        } else {
+            // Default Start
+            for(let i=0; i<6; i++) tbody.appendChild(createRow());
+        }
+        calculate();
+    };
+
+    const resetAll = () => {
+        if(confirm("Are you sure you want to clear all data?")) {
+            localStorage.removeItem("cpiData");
+            location.reload();
+        }
+    };
+
+    window.onload = loadData;
+</script>
+
 </body>
 </html>
